@@ -66,7 +66,7 @@
                 <button onclick="loginGoogle()" class="w-full bg-white text-gray-700 font-bold text-lg py-4 rounded-2xl border-2 border-gray-200 shadow-sm bounce-hover flex items-center justify-center gap-3">
                     <i class="fa-brands fa-google text-red-500"></i> Log Masuk Google
                 </button>
-                <button onclick="loginTeacher()" class="w-full bg-gray-100 text-gray-600 font-bold text-lg py-4 rounded-2xl border-2 border-gray-200 shadow-sm bounce-hover flex items-center justify-center gap-3">
+                <button class="w-full bg-gray-100 text-gray-600 font-bold text-lg py-4 rounded-2xl border-2 border-gray-200 shadow-sm bounce-hover flex items-center justify-center gap-3">
                     <i class="fa-solid fa-user-tie"></i> Log Masuk Guru/Ibu Bapa
                 </button>
             </div>
@@ -80,7 +80,7 @@
                             <img src="https://api.dicebear.com/6.x/avataaars/svg?seed=Ahmad" alt="Avatar" class="w-full h-full rounded-full bg-blue-100">
                         </div>
                         <div>
-                            <h2 class="font-kids text-xl font-bold leading-tight" id="user-greeting">Salam, Ahmad!</h2>
+                            <h2 id="user-name-display" class="font-kids text-xl font-bold leading-tight">Salam, Ahmad!</h2>
                             <p class="text-xs text-green-100">Tahun 1 • Level 5</p>
                         </div>
                     </div>
@@ -216,6 +216,7 @@
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
+        console.log("Firebase Initialized!");
 
         // --- 2. UI NAVIGATION LOGIC ---
         const loginScreen = document.getElementById('login-screen');
@@ -223,49 +224,38 @@
         const moduleScreen = document.getElementById('module-screen');
         const validationFooter = document.getElementById('validation-footer');
 
-        // Fungsi bantuan untuk menukar paparan skrin utama
-        function showMainDashboard() {
+        function loginGuest() {
+            // Animasi mudah untuk UX
             loginScreen.classList.add('hidden');
             mainScreen.classList.remove('hidden');
             mainScreen.classList.add('flex');
+            
+            // Lontar sedikit confetti meraikan pengguna baru
             confetti({ particleCount: 50, spread: 60, origin: { y: 0.8 }, colors: ['#10B981', '#F59E0B', '#3B82F6'] });
         }
 
-        // A. LOG MASUK GUEST
-        function loginGuest() {
-            showMainDashboard();
-        }
-
-        // B. LOG MASUK GOOGLE
+        // DITAMBAH: Fungsi Log Masuk Google
         function loginGoogle() {
             const provider = new firebase.auth.GoogleAuthProvider();
+            
             auth.signInWithPopup(provider)
                 .then((result) => {
                     const user = result.user;
-                    // Kemaskini UI dengan nama pengguna Google
-                    document.getElementById('user-greeting').innerText = "Salam, " + user.displayName + "!";
-                    showMainDashboard();
+                    // Tukar nama di dashboard berdasarkan nama Google
+                    document.getElementById('user-name-display').innerText = "Salam, " + user.displayName + "!";
+                    
+                    // Teruskan ke paparan utama
+                    loginGuest(); 
                 })
                 .catch((error) => {
                     console.error("Ralat Log Masuk:", error);
-                    // Jika testing di localhost/tanpa setup domain Firebase yang betul, amaran ini akan keluar 
-                    // dan app tetap akan meneruskan ke dashboard sebagai demo
-                    alert("Ralat Log Masuk Google (Mungkin domain belum dibenarkan di Firebase).\n\nApp akan diteruskan ke mod Demo.");
-                    showMainDashboard();
+                    // Amaran jika domain localhost belum di-whitelist di console Firebase
+                    alert("Ralat log masuk Google: " + error.message + "\n\nAplikasi akan memaparkan Mod Demo untuk tujuan ujian.");
+                    // Teruskan juga ke paparan utama untuk demo
+                    loginGuest(); 
                 });
         }
 
-        // C. LOG MASUK GURU/IBU BAPA
-        function loginTeacher() {
-            const email = prompt("Sila masukkan E-mel anda (Mod Guru/Ibu Bapa):");
-            if (email) {
-                alert("Log masuk berjaya untuk: " + email);
-                document.getElementById('user-greeting').innerText = "Salam, Cikgu/Ibu Bapa!";
-                showMainDashboard();
-            }
-        }
-
-        // --- 3. MODULE LOGIC ---
         function openModule(type) {
             mainScreen.classList.add('hidden');
             moduleScreen.classList.remove('hidden');
@@ -279,12 +269,12 @@
             mainScreen.classList.remove('hidden');
         }
 
-        // Fungsi khas untuk menutup footer validation tanpa mencetuskan ralat
+        // DITAMBAH: Fungsi untuk menyembunyikan footer ralat secara selamat
         function hideValidation() {
-            validationFooter.classList.add('hidden');
+            document.getElementById('validation-footer').classList.add('hidden');
         }
 
-        // --- 4. GAMIFICATION LOGIC ---
+        // --- 3. GAMIFICATION LOGIC ---
         function correctAnswer() {
             validationFooter.classList.remove('hidden');
             validationFooter.className = 'p-6 text-white text-center font-bold text-xl rounded-t-3xl bg-apk-green flex flex-col gap-3 absolute bottom-0 w-full z-50 fade-in';
@@ -306,11 +296,10 @@
         }
 
         function wrongAnswer() {
-            validationFooter.classList.remove('hidden');
-            validationFooter.className = 'p-6 text-white text-center font-bold text-xl rounded-t-3xl bg-red-400 flex flex-col gap-3 absolute bottom-0 w-full z-50 fade-in';
-            
-            // KOD DIBAIKI: Guna `hideValidation()` supaya tiada ReferenceError di UI
-            validationFooter.innerHTML = `
+             validationFooter.classList.remove('hidden');
+             validationFooter.className = 'p-6 text-white text-center font-bold text-xl rounded-t-3xl bg-red-400 flex flex-col gap-3 absolute bottom-0 w-full z-50 fade-in';
+             // Dibaiki: onclick merujuk fungsi hideValidation()
+             validationFooter.innerHTML = `
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2 text-2xl">
                         <i class="fa-solid fa-circle-xmark"></i> Ops! Cuba lagi.
