@@ -126,7 +126,7 @@
                         <i class="fa-solid fa-comments text-4xl text-green-500 mb-2"></i>
                         <span class="font-kids font-bold text-gray-700">Ayat Mudah</span>
                     </button>
-                    <button class="bg-purple-100 module-card p-4 flex flex-col items-center justify-center text-center">
+                    <button onclick="openModule('game')" class="bg-purple-100 module-card p-4 flex flex-col items-center justify-center text-center">
                         <i class="fa-solid fa-gamepad text-4xl text-purple-500 mb-2"></i>
                         <span class="font-kids font-bold text-gray-700">Main & Kuiz</span>
                     </button>
@@ -217,7 +217,7 @@
             confetti({ particleCount: 50, spread: 60, origin: { y: 0.8 }, colors: ['#10B981', '#F59E0B', '#3B82F6'] });
         }
 
-        // --- 3. DIBAIKI: PANGKALAN DATA SOALAN TERMASUK MODUL AYAT MUDAH ---
+        // --- 3. DIBAIKI: PANGKALAN DATA KUIZ BERMODULAR (TERMASUK GAME & KUIZ) ---
         const quizData = {
             huruf: [
                 { q: 'Pilih yang manakah huruf "Alif"?', choices: ['ب', 'أ', 'ت', 'ث'], correct: 1 },
@@ -232,8 +232,12 @@
             ayat: [
                 { q: 'Bagaimanakah cara menyebut <b>"Ini buku saya"</b>?', choices: ['هَذَا كِتَابِي', 'هَذِهِ مَدْرَسَتِي', 'ذَلِكَ قَلَمِي', 'أَنَا تِلْمِيذٌ'], correct: 0 },
                 { q: 'Apakah maksud bagi ayat: <span class="text-apk-blue font-arabic text-3xl block my-2">إِسْمِي أَحْمَدُ</span>', choices: ['Saya seorang guru', 'Nama saya Ahmad', 'Ini rumah saya', 'Saya suka belajar'], correct: 1 },
-                { q: 'Apakah ucapan selamat untuk <b>"Selamat Pagi"</b>?', choices: ['مساء الخير', 'صباح الخير', 'أهلاً وسهلاً', 'الحمد لله'], correct: 1 },
-                { q: 'Bagaimanakah bertanyakan khabar <b>"Apa khabar kamu?"</b>?', choices: ['مَا إِسْمُكَ؟', 'كَيْفَ حَالُكَ؟', 'مِنْ أَيْنَ أَنْتَ؟', 'كَمْ عُمْرُكَ؟'], correct: 1 }
+                { q: 'Apakah ucapan selamat untuk <b>"Selamat Pagi"</b>?', choices: ['مساء الخير', 'صباح الخير', 'أهلاً وسهلاً', 'الحمد لله'], correct: 1 }
+            ],
+            game: [
+                { q: '🎯 <b>TEKA GAMBAR</b>: Yang manakah bermaksud <b>"Qalam" (قَلَم)</b>?', choices: ['🏠 Rumah', '✏️ Pensel/Pena', '🚗 Kereta', '🌳 Pokok'], correct: 1 },
+                { q: '🧩 <b>SUAI PADAN</b>: Cari padanan yang betul bagi perkataan <b>"Bait" (بَيْت)</b>!', choices: ['🐱 Kucing', '📖 Buku', '🏠 Rumah', '🍎 Epal'], correct: 2 },
+                { q: '⚡ <b>CABARAN PANTAS</b>: Lawan bagi perkataan <span class="text-purple-600 font-arabic text-2xl">كَبِيرٌ</span> (Besar) ialah...', choices: ['صَغِيرٌ (Kecil)', 'جَمِيلٌ (Cantik)', 'طَوِيلٌ (Panjang)', 'جَدِيدٌ (Baru)'], correct: 0 }
             ]
         };
 
@@ -263,22 +267,23 @@
             
             const data = activeQuestions[currentQuestionIndex];
             
-            // Kemaskini Teks Soalan
+            // Kemaskini teks soalan mengikut modul
             document.getElementById('question-text').innerHTML = data.q;
             
-            // Kemaskini Bar Kemajuan
+            // Kemaskini peratusan bar kemajuan (progress bar)
             const progressPercent = (currentQuestionIndex / activeQuestions.length) * 100;
             document.getElementById('module-progress').style.width = `${progressPercent}%`;
             
-            // Jana Butang Jawapan mengikut format teks (jika ayat panjang, saiz teks dilaraskan sedikit)
+            // Jana butang jawapan berdasarkan kepanjangan teks kuiz
             const container = document.getElementById('choices-container');
             container.innerHTML = '';
             
-            const textStyle = currentModule === 'ayat' ? 'text-2xl py-6' : 'text-5xl p-8';
+            const isLongText = (currentModule === 'ayat' || currentModule === 'game');
+            const textStyle = isLongText ? 'text-xl py-6 px-4' : 'text-6xl p-8';
             
             data.choices.forEach((choice, index) => {
                 const btn = document.createElement('button');
-                btn.className = `border-4 border-gray-200 rounded-2xl font-arabic text-gray-700 hover:bg-gray-50 active:bg-gray-100 module-card flex items-center justify-center text-center px-4 ${textStyle}`;
+                btn.className = `border-4 border-gray-200 rounded-2xl font-arabic text-gray-700 hover:bg-gray-50 active:bg-gray-100 module-card flex items-center justify-center text-center ${textStyle}`;
                 btn.innerHTML = choice;
                 btn.onclick = () => checkAnswer(index, data.correct);
                 container.appendChild(btn);
@@ -293,7 +298,7 @@
             }
         }
 
-        // --- 4. FEEDBACK & GAMIFICATION LOGIC ---
+        // --- 4. GAMIFICATION FEEDBACK ---
         function correctAnswer() {
             validationFooter.classList.remove('hidden');
             validationFooter.className = 'p-6 text-white text-center font-bold text-xl rounded-t-3xl bg-apk-green flex flex-col gap-3 absolute bottom-0 w-full z-50 fade-in';
@@ -307,8 +312,8 @@
             `;
             
             confetti({
-                particleCount: 120,
-                spread: 80,
+                particleCount: 150,
+                spread: 90,
                 origin: { y: 0.6 },
                 colors: ['#F59E0B', '#10B981', '#FFFFFF']
             });
@@ -338,19 +343,19 @@
 
         function showCompletionScreen() {
             document.getElementById('module-progress').style.width = '100%';
-            document.getElementById('question-text').innerHTML = "Hebat! Anda telah menyelesaikan latihan ini dengan cemerlang! 🎉";
+            document.getElementById('question-text').innerHTML = "Barakallah! Anda berjaya menyelesaikan permainan ini! 🎮✨";
             
             const container = document.getElementById('choices-container');
             container.innerHTML = `
                 <div class="col-span-2 flex flex-col items-center justify-center p-6 bg-yellow-50 rounded-3xl border-4 border-yellow-200 mt-4">
                     <i class="fa-solid fa-trophy text-6xl text-apk-gold mb-3 animate-bounce"></i>
-                    <h3 class="font-kids font-bold text-2xl text-yellow-600 mb-1">+150 XP Baharu!</h3>
-                    <p class="text-sm text-gray-500 mb-4">Modul selesai. Teruskan belajar untuk menjadi PRO!</p>
+                    <h3 class="font-kids font-bold text-2xl text-yellow-600 mb-1">+200 XP BONUS GAME!</h3>
+                    <p class="text-sm text-gray-500 mb-4">Anda bermain seperti seorang profesional sejati!</p>
                     <button onclick="closeModule()" class="w-full bg-apk-gold text-white font-bold py-3 px-6 rounded-xl module-card text-lg">Kembali ke Menu Utama</button>
                 </div>
             `;
             
-            confetti({ particleCount: 200, spread: 100, origin: { y: 0.5 } });
+            confetti({ particleCount: 250, spread: 120, origin: { y: 0.5 } });
         }
 
         function closeModule() {
