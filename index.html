@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🕌 Arab PRO Kids</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'apk-green': '#10B981', // Hijau lembut Islamik
+                        'apk-blue': '#3B82F6',  // Biru lembut
+                        'apk-gold': '#F59E0B',  // Emas untuk ganjaran
+                        'apk-bg': '#F0FDF4',    // Latar belakang hijau sangat cair
+                    },
+                    fontFamily: {
+                        'kids': ['"Baloo 2"', 'cursive'],
+                        'arabic': ['Arial', 'sans-serif'] // Boleh ditukar ke font Arab khusus
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { font-family: 'Nunito', sans-serif; background-color: #F0FDF4; -webkit-tap-highlight-color: transparent; }
+        h1, h2, h3, .font-kids { font-family: 'Baloo 2', cursive; }
+        
+        .bounce-hover:hover { transform: translateY(-5px); transition: all 0.2s ease; }
+        .module-card { border-bottom: 6px solid rgba(0,0,0,0.1); border-radius: 1.5rem; }
+        .module-card:active { border-bottom: 2px solid rgba(0,0,0,0.1); transform: translateY(4px); }
+        
+        /* Hide scrollbar for clean UI */
+        ::-webkit-scrollbar { width: 0px; background: transparent; }
+        
+        .fade-in { animation: fadeIn 0.4s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="text-gray-800 h-screen flex flex-col overflow-hidden">
+
+    <div class="max-w-md w-full h-full mx-auto bg-white shadow-2xl relative flex flex-col sm:border-x-4 sm:border-gray-100">
+
+        <div id="login-screen" class="absolute inset-0 bg-apk-bg z-50 flex flex-col items-center justify-center p-6 fade-in">
+            <div class="text-center mb-8">
+                <div class="w-32 h-32 bg-white rounded-full shadow-lg flex items-center justify-center mx-auto mb-4 border-4 border-apk-green">
+                    <i class="fa-solid fa-mosque text-5xl text-apk-green"></i>
+                </div>
+                <h1 class="text-4xl font-kids font-bold text-apk-green">Arab PRO<br>Kids</h1>
+                <p class="text-gray-500 mt-2 font-bold">Belajar Bahasa Arab Cara Pro!</p>
+            </div>
+
+            <div class="w-full space-y-4">
+                <button onclick="loginGuest()" class="w-full bg-apk-blue text-white font-bold text-xl py-4 rounded-2xl module-card bounce-hover flex items-center justify-center gap-3">
+                    <i class="fa-solid fa-play"></i> Mula Belajar (Guest)
+                </button>
+                <button class="w-full bg-white text-gray-700 font-bold text-lg py-4 rounded-2xl border-2 border-gray-200 shadow-sm bounce-hover flex items-center justify-center gap-3">
+                    <i class="fa-brands fa-google text-red-500"></i> Log Masuk Google
+                </button>
+                <button class="w-full bg-gray-100 text-gray-600 font-bold text-lg py-4 rounded-2xl border-2 border-gray-200 shadow-sm bounce-hover flex items-center justify-center gap-3">
+                    <i class="fa-solid fa-user-tie"></i> Log Masuk Guru/Ibu Bapa
+                </button>
+            </div>
+        </div>
+
+        <div id="main-screen" class="hidden flex-col h-full fade-in">
+            <div class="bg-apk-green text-white p-5 rounded-b-3xl shadow-md z-10">
+                <div class="flex justify-between items-center mb-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 bg-white rounded-full p-1 border-2 border-apk-gold">
+                            <img src="https://api.dicebear.com/6.x/avataaars/svg?seed=Ahmad" alt="Avatar" class="w-full h-full rounded-full bg-blue-100">
+                        </div>
+                        <div>
+                            <h2 class="font-kids text-xl font-bold leading-tight">Salam, Ahmad!</h2>
+                            <p class="text-xs text-green-100">Tahun 1 • Level 5</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <div class="bg-white/20 px-3 py-1 rounded-full flex items-center gap-1 font-bold">
+                            <i class="fa-solid fa-fire text-orange-400"></i> 12
+                        </div>
+                        <div class="bg-white/20 px-3 py-1 rounded-full flex items-center gap-1 font-bold">
+                            <i class="fa-solid fa-coins text-apk-gold"></i> 450
+                        </div>
+                    </div>
+                </div>
+                <div class="w-full bg-black/20 rounded-full h-3 mb-1">
+                    <div class="bg-apk-gold h-3 rounded-full" style="width: 70%"></div>
+                </div>
+                <div class="text-right text-xs text-green-100 font-bold">XP: 1250 / 2000</div>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-4 pb-24 bg-apk-bg">
+                
+                <div class="bg-white p-4 rounded-2xl shadow-sm border-2 border-blue-100 mb-6 flex items-center justify-between">
+                    <div>
+                        <h3 class="font-kids font-bold text-lg text-apk-blue">Cabaran Harian</h3>
+                        <p class="text-sm text-gray-500">Selesaikan 1 Kuiz Haiwan</p>
+                    </div>
+                    <div class="bg-orange-100 p-3 rounded-xl text-orange-500">
+                        <i class="fa-solid fa-gift text-2xl"></i>
+                    </div>
+                </div>
+
+                <h3 class="font-kids font-bold text-xl text-gray-700 mb-4">Mari Belajar! 🚀</h3>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <button onclick="openModule('huruf')" class="bg-pink-100 module-card p-4 flex flex-col items-center justify-center text-center">
+                        <span class="text-5xl font-arabic text-pink-500 mb-2 font-bold">أ ب</span>
+                        <span class="font-kids font-bold text-gray-700">Huruf Hijaiyah</span>
+                    </button>
+                    <button class="bg-blue-100 module-card p-4 flex flex-col items-center justify-center text-center">
+                        <i class="fa-solid fa-book-open text-4xl text-blue-500 mb-2"></i>
+                        <span class="font-kids font-bold text-gray-700">1000 Perkataan</span>
+                    </button>
+                    <button class="bg-green-100 module-card p-4 flex flex-col items-center justify-center text-center">
+                        <i class="fa-solid fa-comments text-4xl text-green-500 mb-2"></i>
+                        <span class="font-kids font-bold text-gray-700">Ayat Mudah</span>
+                    </button>
+                    <button class="bg-purple-100 module-card p-4 flex flex-col items-center justify-center text-center">
+                        <i class="fa-solid fa-gamepad text-4xl text-purple-500 mb-2"></i>
+                        <span class="font-kids font-bold text-gray-700">Main & Kuiz</span>
+                    </button>
+                    <button class="bg-orange-100 module-card p-4 flex flex-col items-center justify-center text-center col-span-2">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-white p-3 rounded-full shadow-sm text-orange-500">
+                                <i class="fa-solid fa-robot text-3xl"></i>
+                            </div>
+                            <div class="text-left">
+                                <span class="font-kids font-bold text-gray-700 block text-lg">AI Tutor Pintar</span>
+                                <span class="text-sm text-gray-500">Tanya apa sahaja!</span>
+                            </div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <div class="absolute bottom-0 w-full bg-white border-t-2 border-gray-100 flex justify-around p-3 pb-6 z-20 shadow-[0_-10px_20px_rgba(0,0,0,0.05)]">
+                <button class="flex flex-col items-center text-apk-green">
+                    <i class="fa-solid fa-house text-2xl mb-1"></i>
+                    <span class="text-xs font-bold">Home</span>
+                </button>
+                <button class="flex flex-col items-center text-gray-400 hover:text-apk-blue transition">
+                    <i class="fa-solid fa-trophy text-2xl mb-1"></i>
+                    <span class="text-xs font-bold">Ranking</span>
+                </button>
+                <button class="flex flex-col items-center text-gray-400 hover:text-apk-blue transition">
+                    <i class="fa-solid fa-chart-pie text-2xl mb-1"></i>
+                    <span class="text-xs font-bold">Prestasi</span>
+                </button>
+                <button class="flex flex-col items-center text-gray-400 hover:text-apk-blue transition">
+                    <i class="fa-solid fa-gear text-2xl mb-1"></i>
+                    <span class="text-xs font-bold">Tetapan</span>
+                </button>
+            </div>
+        </div>
+
+        <div id="module-screen" class="hidden flex-col h-full bg-white z-40 absolute inset-0 fade-in">
+            <div class="p-4 flex items-center gap-4 border-b-2 border-gray-100">
+                <button onclick="closeModule()" class="text-gray-400 hover:text-gray-700 text-2xl">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+                <div class="w-full bg-gray-200 rounded-full h-4">
+                    <div class="bg-apk-green h-4 rounded-full" style="width: 50%"></div>
+                </div>
+                <i class="fa-solid fa-heart text-red-500 text-xl"></i>
+            </div>
+            
+            <div class="flex-1 flex flex-col items-center justify-center p-6 text-center">
+                <h2 class="font-kids font-bold text-2xl text-gray-700 mb-2">Pilih yang manakah huruf "Alif"?</h2>
+                
+                <div class="grid grid-cols-2 gap-4 w-full mt-8">
+                    <button onclick="wrongAnswer()" class="border-4 border-gray-200 rounded-2xl p-8 text-6xl font-arabic text-gray-700 hover:bg-gray-50 active:bg-gray-100 module-card">
+                        ب
+                    </button>
+                    <button onclick="correctAnswer()" class="border-4 border-gray-200 rounded-2xl p-8 text-6xl font-arabic text-gray-700 hover:bg-gray-50 active:bg-gray-100 module-card">
+                        أ
+                    </button>
+                    <button onclick="wrongAnswer()" class="border-4 border-gray-200 rounded-2xl p-8 text-6xl font-arabic text-gray-700 hover:bg-gray-50 active:bg-gray-100 module-card">
+                        ت
+                    </button>
+                    <button onclick="wrongAnswer()" class="border-4 border-gray-200 rounded-2xl p-8 text-6xl font-arabic text-gray-700 hover:bg-gray-50 active:bg-gray-100 module-card">
+                        ث
+                    </button>
+                </div>
+            </div>
+
+            <div id="validation-footer" class="hidden p-6 text-white text-center font-bold text-xl rounded-t-3xl">
+                </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- 1. FIREBASE CONFIGURATION ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyAtFzrMWQ70vRCVhoECHxjjY0hP5WXkw74",
+            authDomain: "arab-pro-kids.firebaseapp.com",
+            databaseURL: "https://arab-pro-kids-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "arab-pro-kids",
+            storageBucket: "arab-pro-kids.firebasestorage.app",
+            messagingSenderId: "648161412378",
+            appId: "1:648161412378:web:b37feef60b72ebf1b098a3"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        console.log("Firebase Initialized!");
+
+        // --- 2. UI NAVIGATION LOGIC ---
+        const loginScreen = document.getElementById('login-screen');
+        const mainScreen = document.getElementById('main-screen');
+        const moduleScreen = document.getElementById('module-screen');
+        const validationFooter = document.getElementById('validation-footer');
+
+        function loginGuest() {
+            // Animasi mudah untuk UX
+            loginScreen.classList.add('hidden');
+            mainScreen.classList.remove('hidden');
+            mainScreen.classList.add('flex');
+            
+            // Lontar sedikit confetti meraikan pengguna baru
+            confetti({ particleCount: 50, spread: 60, origin: { y: 0.8 }, colors: ['#10B981', '#F59E0B', '#3B82F6'] });
+        }
+
+        function openModule(type) {
+            mainScreen.classList.add('hidden');
+            moduleScreen.classList.remove('hidden');
+            moduleScreen.classList.add('flex');
+            validationFooter.classList.add('hidden'); // reset
+        }
+
+        function closeModule() {
+            moduleScreen.classList.add('hidden');
+            moduleScreen.classList.remove('flex');
+            mainScreen.classList.remove('hidden');
+        }
+
+        // --- 3. GAMIFICATION LOGIC ---
+        function correctAnswer() {
+            // Tunjuk UI jawapan betul
+            validationFooter.className = 'p-6 text-white text-center font-bold text-xl rounded-t-3xl bg-apk-green flex flex-col gap-3 absolute bottom-0 w-full z-50 fade-in';
+            validationFooter.innerHTML = `
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2 text-2xl">
+                        <i class="fa-solid fa-circle-check"></i> Mumtaz! Betul!
+                    </div>
+                </div>
+                <button onclick="closeModule()" class="w-full bg-white text-apk-green py-3 rounded-xl module-card text-lg">Teruskan</button>
+            `;
+            
+            // Audio efek betul (Simulasi)
+            // let audio = new Audio('assets/correct.mp3'); audio.play();
+            
+            // Confetti
+            confetti({
+                particleCount: 150,
+                spread: 100,
+                origin: { y: 0.6 },
+                colors: ['#F59E0B', '#10B981', '#FFFFFF']
+            });
+        }
+
+        function wrongAnswer() {
+             validationFooter.className = 'p-6 text-white text-center font-bold text-xl rounded-t-3xl bg-red-400 flex flex-col gap-3 absolute bottom-0 w-full z-50 fade-in';
+             validationFooter.innerHTML = `
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2 text-2xl">
+                        <i class="fa-solid fa-circle-xmark"></i> Ops! Cuba lagi.
+                    </div>
+                </div>
+                <button onclick="validationFooter.classList.add('hidden')" class="w-full bg-white text-red-500 py-3 rounded-xl module-card text-lg">Faham</button>
+            `;
+        }
+    </script>
+</body>
+</html>
