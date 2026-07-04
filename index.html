@@ -18,14 +18,14 @@
             theme: {
                 extend: {
                     colors: {
-                        'apk-green': '#10B981', // Hijau lembut Islamik
-                        'apk-blue': '#3B82F6',  // Biru lembut
-                        'apk-gold': '#F59E0B',  // Emas untuk ganjaran
-                        'apk-bg': '#F0FDF4',    // Latar belakang hijau sangat cair
+                        'apk-green': '#10B981', 
+                        'apk-blue': '#3B82F6',  
+                        'apk-gold': '#F59E0B',  
+                        'apk-bg': '#F0FDF4',    
                     },
                     fontFamily: {
                         'kids': ['"Baloo 2"', 'cursive'],
-                        'arabic': ['Arial', 'sans-serif'] // Boleh ditukar ke font Arab khusus
+                        'arabic': ['Arial', 'sans-serif'] 
                     }
                 }
             }
@@ -40,7 +40,6 @@
         .module-card { border-bottom: 6px solid rgba(0,0,0,0.1); border-radius: 1.5rem; }
         .module-card:active { border-bottom: 2px solid rgba(0,0,0,0.1); transform: translateY(4px); }
         
-        /* Hide scrollbar for clean UI */
         ::-webkit-scrollbar { width: 0px; background: transparent; }
         
         .fade-in { animation: fadeIn 0.4s ease-in-out; }
@@ -64,10 +63,10 @@
                 <button onclick="loginGuest()" class="w-full bg-apk-blue text-white font-bold text-xl py-4 rounded-2xl module-card bounce-hover flex items-center justify-center gap-3">
                     <i class="fa-solid fa-play"></i> Mula Belajar (Guest)
                 </button>
-                <button class="w-full bg-white text-gray-700 font-bold text-lg py-4 rounded-2xl border-2 border-gray-200 shadow-sm bounce-hover flex items-center justify-center gap-3">
+                <button onclick="loginGoogle()" class="w-full bg-white text-gray-700 font-bold text-lg py-4 rounded-2xl border-2 border-gray-200 shadow-sm bounce-hover flex items-center justify-center gap-3">
                     <i class="fa-brands fa-google text-red-500"></i> Log Masuk Google
                 </button>
-                <button class="w-full bg-gray-100 text-gray-600 font-bold text-lg py-4 rounded-2xl border-2 border-gray-200 shadow-sm bounce-hover flex items-center justify-center gap-3">
+                <button onclick="loginTeacher()" class="w-full bg-gray-100 text-gray-600 font-bold text-lg py-4 rounded-2xl border-2 border-gray-200 shadow-sm bounce-hover flex items-center justify-center gap-3">
                     <i class="fa-solid fa-user-tie"></i> Log Masuk Guru/Ibu Bapa
                 </button>
             </div>
@@ -81,7 +80,7 @@
                             <img src="https://api.dicebear.com/6.x/avataaars/svg?seed=Ahmad" alt="Avatar" class="w-full h-full rounded-full bg-blue-100">
                         </div>
                         <div>
-                            <h2 class="font-kids text-xl font-bold leading-tight">Salam, Ahmad!</h2>
+                            <h2 class="font-kids text-xl font-bold leading-tight" id="user-greeting">Salam, Ahmad!</h2>
                             <p class="text-xs text-green-100">Tahun 1 • Level 5</p>
                         </div>
                     </div>
@@ -196,7 +195,7 @@
             </div>
 
             <div id="validation-footer" class="hidden p-6 text-white text-center font-bold text-xl rounded-t-3xl">
-                </div>
+            </div>
         </div>
 
     </div>
@@ -217,7 +216,6 @@
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
-        console.log("Firebase Initialized!");
 
         // --- 2. UI NAVIGATION LOGIC ---
         const loginScreen = document.getElementById('login-screen');
@@ -225,16 +223,49 @@
         const moduleScreen = document.getElementById('module-screen');
         const validationFooter = document.getElementById('validation-footer');
 
-        function loginGuest() {
-            // Animasi mudah untuk UX
+        // Fungsi bantuan untuk menukar paparan skrin utama
+        function showMainDashboard() {
             loginScreen.classList.add('hidden');
             mainScreen.classList.remove('hidden');
             mainScreen.classList.add('flex');
-            
-            // Lontar sedikit confetti meraikan pengguna baru
             confetti({ particleCount: 50, spread: 60, origin: { y: 0.8 }, colors: ['#10B981', '#F59E0B', '#3B82F6'] });
         }
 
+        // A. LOG MASUK GUEST
+        function loginGuest() {
+            showMainDashboard();
+        }
+
+        // B. LOG MASUK GOOGLE
+        function loginGoogle() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider)
+                .then((result) => {
+                    const user = result.user;
+                    // Kemaskini UI dengan nama pengguna Google
+                    document.getElementById('user-greeting').innerText = "Salam, " + user.displayName + "!";
+                    showMainDashboard();
+                })
+                .catch((error) => {
+                    console.error("Ralat Log Masuk:", error);
+                    // Jika testing di localhost/tanpa setup domain Firebase yang betul, amaran ini akan keluar 
+                    // dan app tetap akan meneruskan ke dashboard sebagai demo
+                    alert("Ralat Log Masuk Google (Mungkin domain belum dibenarkan di Firebase).\n\nApp akan diteruskan ke mod Demo.");
+                    showMainDashboard();
+                });
+        }
+
+        // C. LOG MASUK GURU/IBU BAPA
+        function loginTeacher() {
+            const email = prompt("Sila masukkan E-mel anda (Mod Guru/Ibu Bapa):");
+            if (email) {
+                alert("Log masuk berjaya untuk: " + email);
+                document.getElementById('user-greeting').innerText = "Salam, Cikgu/Ibu Bapa!";
+                showMainDashboard();
+            }
+        }
+
+        // --- 3. MODULE LOGIC ---
         function openModule(type) {
             mainScreen.classList.add('hidden');
             moduleScreen.classList.remove('hidden');
@@ -248,9 +279,14 @@
             mainScreen.classList.remove('hidden');
         }
 
-        // --- 3. GAMIFICATION LOGIC ---
+        // Fungsi khas untuk menutup footer validation tanpa mencetuskan ralat
+        function hideValidation() {
+            validationFooter.classList.add('hidden');
+        }
+
+        // --- 4. GAMIFICATION LOGIC ---
         function correctAnswer() {
-            // Tunjuk UI jawapan betul
+            validationFooter.classList.remove('hidden');
             validationFooter.className = 'p-6 text-white text-center font-bold text-xl rounded-t-3xl bg-apk-green flex flex-col gap-3 absolute bottom-0 w-full z-50 fade-in';
             validationFooter.innerHTML = `
                 <div class="flex items-center justify-between">
@@ -261,10 +297,6 @@
                 <button onclick="closeModule()" class="w-full bg-white text-apk-green py-3 rounded-xl module-card text-lg">Teruskan</button>
             `;
             
-            // Audio efek betul (Simulasi)
-            // let audio = new Audio('assets/correct.mp3'); audio.play();
-            
-            // Confetti
             confetti({
                 particleCount: 150,
                 spread: 100,
@@ -274,14 +306,17 @@
         }
 
         function wrongAnswer() {
-             validationFooter.className = 'p-6 text-white text-center font-bold text-xl rounded-t-3xl bg-red-400 flex flex-col gap-3 absolute bottom-0 w-full z-50 fade-in';
-             validationFooter.innerHTML = `
+            validationFooter.classList.remove('hidden');
+            validationFooter.className = 'p-6 text-white text-center font-bold text-xl rounded-t-3xl bg-red-400 flex flex-col gap-3 absolute bottom-0 w-full z-50 fade-in';
+            
+            // KOD DIBAIKI: Guna `hideValidation()` supaya tiada ReferenceError di UI
+            validationFooter.innerHTML = `
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2 text-2xl">
                         <i class="fa-solid fa-circle-xmark"></i> Ops! Cuba lagi.
                     </div>
                 </div>
-                <button onclick="validationFooter.classList.add('hidden')" class="w-full bg-white text-red-500 py-3 rounded-xl module-card text-lg">Faham</button>
+                <button onclick="hideValidation()" class="w-full bg-white text-red-500 py-3 rounded-xl module-card text-lg">Faham</button>
             `;
         }
     </script>
