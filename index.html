@@ -18,14 +18,14 @@
             theme: {
                 extend: {
                     colors: {
-                        'apk-green': '#10B981', 
-                        'apk-blue': '#3B82F6',  
-                        'apk-gold': '#F59E0B',  
-                        'apk-bg': '#F0FDF4',    
+                        'apk-green': '#10B981', // Hijau lembut Islamik
+                        'apk-blue': '#3B82F6',  // Biru lembut
+                        'apk-gold': '#F59E0B',  // Emas untuk ganjaran
+                        'apk-bg': '#F0FDF4',    // Latar belakang hijau sangat cair
                     },
                     fontFamily: {
                         'kids': ['"Baloo 2"', 'cursive'],
-                        'arabic': ['Arial', 'sans-serif'] 
+                        'arabic': ['Arial', 'sans-serif']
                     }
                 }
             }
@@ -89,7 +89,7 @@
                             <i class="fa-solid fa-fire text-orange-400"></i> 12
                         </div>
                         <div class="bg-white/20 px-3 py-1 rounded-full flex items-center gap-1 font-bold">
-                            <i id="user-xp" class="fa-solid fa-coins text-apk-gold"></i> 450
+                            <i class="fa-solid fa-coins text-apk-gold"></i> 450
                         </div>
                     </div>
                 </div>
@@ -118,7 +118,7 @@
                         <span class="text-5xl font-arabic text-pink-500 mb-2 font-bold">أ ب</span>
                         <span class="font-kids font-bold text-gray-700">Huruf Hijaiyah</span>
                     </button>
-                    <button class="bg-blue-100 module-card p-4 flex flex-col items-center justify-center text-center">
+                    <button onclick="openModule('perkataan')" class="bg-blue-100 module-card p-4 flex flex-col items-center justify-center text-center">
                         <i class="fa-solid fa-book-open text-4xl text-blue-500 mb-2"></i>
                         <span class="font-kids font-bold text-gray-700">1000 Perkataan</span>
                     </button>
@@ -176,13 +176,13 @@
             </div>
             
             <div class="flex-1 flex flex-col items-center justify-center p-6 text-center">
-                <h2 id="question-title" class="font-kids font-bold text-2xl text-gray-700 mb-2">Memuatkan...</h2>
+                <h2 id="question-text" class="font-kids font-bold text-2xl text-gray-700 mb-2">Memuatkan soalan...</h2>
                 
-                <div id="options-container" class="grid grid-cols-2 gap-4 w-full mt-8 fade-in">
-                    </div>
+                <div id="choices-container" class="grid grid-cols-2 gap-4 w-full mt-8">
+                </div>
             </div>
 
-            <div id="validation-footer" class="hidden p-6 text-white text-center font-bold text-xl rounded-t-3xl transition-all">
+            <div id="validation-footer" class="hidden p-6 text-white text-center font-bold text-xl rounded-t-3xl">
             </div>
         </div>
 
@@ -222,107 +222,89 @@
             auth.signInWithPopup(provider).then((result) => {
                 document.getElementById('user-greeting').innerText = "Salam, " + result.user.displayName + "!";
                 loginGuest();
-            }).catch((error) => {
-                alert("Mod Demo: Log masuk dibatalkan atau ralat domain.");
+            }).catch((err) => {
+                alert("Mod Demo Diaktifkan (Sebab: Ujian Tempatan / Domain Belum Ditambah ke Firebase)");
                 loginGuest();
             });
         }
 
         function loginTeacher() {
-            const email = prompt("Sila masukkan E-mel anda (Mod Guru/Ibu Bapa):");
-            if(email) loginGuest();
+            alert("Mod Demo Guru/Ibu Bapa diaktifkan.");
+            loginGuest();
         }
 
-        // --- 3. DYNAMIC MODULE LOGIC (HURUF HIJAIYAH) ---
-        
-        // Pangkalan data mini untuk soalan
-        const hurufQuestions = [
-            { question: 'Pilih yang manakah huruf "Alif"?', options: ['ب', 'أ', 'ت', 'ث'], correctIndex: 1 },
-            { question: 'Pilih yang manakah huruf "Ba"?', options: ['ج', 'ح', 'ب', 'خ'], correctIndex: 2 },
-            { question: 'Pilih yang manakah huruf "Ta"?', options: ['ت', 'ث', 'ن', 'ي'], correctIndex: 0 },
-            { question: 'Pilih yang manakah huruf "Jim"?', options: ['خ', 'ح', 'ج', 'ث'], correctIndex: 2 }
-        ];
+        // --- 3. KOD DIBAIKI: PANGKALAN DATA SOALAN DINAMIK ---
+        const quizData = {
+            huruf: [
+                { q: 'Pilih yang manakah huruf "Alif"?', choices: ['ب', 'أ', 'ت', 'ث'], correct: 1 },
+                { q: 'Pilih yang manakah huruf "Ba"?', choices: ['ج', 'ث', 'ب', 'خ'], correct: 2 },
+                { q: 'Pilih yang manakah huruf "Ta"?', choices: ['ت', 'أ', 'د', 'ز'], correct: 0 }
+            ],
+            perkataan: [
+                { q: 'Apakah bahasa Arab untuk 📖 <b>Buku</b>?', choices: ['قَلَم', 'كِتَاب', 'بَيْت', 'مَدْرَسَة'], correct: 1 },
+                { q: 'Apakah bahasa Arab untuk 🍎 <b>Epal</b>?', choices: ['تُفَّاحَة', 'مَوْz', 'بُرْتُقَال', 'عِنَب'], correct: 0 },
+                { q: 'Apakah bahasa Arab untuk 🐱 <b>Kucing</b>?', choices: ['كَلْب', 'قِطّ', 'أَسَد', 'فِيل'], correct: 1 },
+                { q: 'Apakah bahasa Arab untuk 🏠 <b>Rumah</b>?', choices: ['بَيْت', 'غُرْفَة', 'مَسْجِد', 'بَاب'], correct: 0 }
+            ]
+        };
 
+        let currentModule = 'huruf';
         let currentQuestionIndex = 0;
 
         function openModule(type) {
+            currentModule = type;
+            currentQuestionIndex = 0;
+            
             mainScreen.classList.add('hidden');
             moduleScreen.classList.remove('hidden');
             moduleScreen.classList.add('flex');
-            hideValidation();
             
-            if (type === 'huruf') {
-                currentQuestionIndex = 0;
-                loadQuestion(currentQuestionIndex);
-            }
+            loadQuestion();
         }
 
-        function loadQuestion(index) {
-            hideValidation();
-            const qData = hurufQuestions[index];
+        function loadQuestion() {
+            closeValidation();
             
-            // Kemaskini Progress Bar
-            const progressPercentage = (index / hurufQuestions.length) * 100;
-            document.getElementById('module-progress').style.width = progressPercentage + '%';
-
-            // Kemaskini Tajuk Soalan
-            document.getElementById('question-title').innerText = qData.question;
-
-            // Jana Pilihan Jawapan Secara Dinamik
-            const optionsContainer = document.getElementById('options-container');
-            optionsContainer.innerHTML = ''; // Kosongkan pilihan lama
-
-            qData.options.forEach((opt, idx) => {
+            const activeQuestions = quizData[currentModule];
+            
+            // Jikalau semua soalan dalam modul telah selesai digenerasi
+            if (currentQuestionIndex >= activeQuestions.length) {
+                showCompletionScreen();
+                return;
+            }
+            
+            const data = activeQuestions[currentQuestionIndex];
+            
+            // Kemaskini Teks Soalan
+            document.getElementById('question-text').innerHTML = data.q;
+            
+            // Pergerakan bar kemajuan (progress bar) secara dinamik
+            const progressPercent = (currentQuestionIndex / activeQuestions.length) * 100;
+            document.getElementById('module-progress').style.width = `${progressPercent}%`;
+            
+            // Jana Butang Pilihan Jawapan secara dinamik
+            const container = document.getElementById('choices-container');
+            container.innerHTML = '';
+            
+            data.choices.forEach((choice, index) => {
                 const btn = document.createElement('button');
-                btn.className = "border-4 border-gray-200 rounded-2xl p-8 text-6xl font-arabic text-gray-700 hover:bg-gray-50 active:bg-gray-100 module-card";
-                btn.innerText = opt;
-                btn.onclick = () => checkAnswer(idx, qData.correctIndex);
-                optionsContainer.appendChild(btn);
+                btn.className = "border-4 border-gray-200 rounded-2xl p-8 text-5xl font-arabic text-gray-700 hover:bg-gray-50 active:bg-gray-100 module-card flex items-center justify-center";
+                btn.innerText = choice;
+                btn.onclick = () => checkAnswer(index, data.correct);
+                container.appendChild(btn);
             });
         }
 
         function checkAnswer(selectedIndex, correctIndex) {
             if (selectedIndex === correctIndex) {
-                showCorrectValidation();
+                correctAnswer();
             } else {
-                showWrongValidation();
+                wrongAnswer();
             }
         }
 
-        function nextQuestion() {
-            currentQuestionIndex++;
-            if (currentQuestionIndex < hurufQuestions.length) {
-                loadQuestion(currentQuestionIndex);
-            } else {
-                // Modul Tamat
-                document.getElementById('module-progress').style.width = '100%';
-                document.getElementById('question-title').innerText = "Tahniah! Anda telah tamat modul ini.";
-                document.getElementById('options-container').innerHTML = `
-                    <div class="col-span-2 flex flex-col items-center justify-center p-6 bg-yellow-50 rounded-3xl border-4 border-yellow-200">
-                        <i class="fa-solid fa-trophy text-6xl text-apk-gold mb-4"></i>
-                        <h3 class="font-bold text-2xl text-yellow-600 mb-2">+50 XP</h3>
-                        <button onclick="closeModule()" class="mt-4 bg-apk-gold text-white font-bold py-3 px-8 rounded-full module-card text-lg">Kembali ke Utama</button>
-                    </div>
-                `;
-                hideValidation();
-                confetti({ particleCount: 200, spread: 120, origin: { y: 0.5 }, colors: ['#F59E0B', '#10B981'] });
-            }
-        }
-
-        function closeModule() {
-            moduleScreen.classList.add('hidden');
-            moduleScreen.classList.remove('flex');
-            mainScreen.classList.remove('hidden');
-        }
-
-        // --- 4. VALIDATION UI (MENYEMBUNYIKAN RALAT) ---
-
-        function hideValidation() {
-            validationFooter.classList.add('hidden');
-            validationFooter.classList.remove('fade-in');
-        }
-
-        function showCorrectValidation() {
+        // --- 4. GAMIFICATION & FEEDBACK LOGIC ---
+        function correctAnswer() {
             validationFooter.classList.remove('hidden');
             validationFooter.className = 'p-6 text-white text-center font-bold text-xl rounded-t-3xl bg-apk-green flex flex-col gap-3 absolute bottom-0 w-full z-50 fade-in';
             validationFooter.innerHTML = `
@@ -335,22 +317,56 @@
             `;
             
             confetti({
-                particleCount: 150, spread: 100, origin: { y: 0.6 },
+                particleCount: 120,
+                spread: 80,
+                origin: { y: 0.6 },
                 colors: ['#F59E0B', '#10B981', '#FFFFFF']
             });
         }
 
-        function showWrongValidation() {
-             validationFooter.classList.remove('hidden');
-             validationFooter.className = 'p-6 text-white text-center font-bold text-xl rounded-t-3xl bg-red-400 flex flex-col gap-3 absolute bottom-0 w-full z-50 fade-in';
-             validationFooter.innerHTML = `
+        function wrongAnswer() {
+            validationFooter.classList.remove('hidden');
+            validationFooter.className = 'p-6 text-white text-center font-bold text-xl rounded-t-3xl bg-red-400 flex flex-col gap-3 absolute bottom-0 w-full z-50 fade-in';
+            validationFooter.innerHTML = `
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2 text-2xl">
                         <i class="fa-solid fa-circle-xmark"></i> Ops! Cuba lagi.
                     </div>
                 </div>
-                <button onclick="hideValidation()" class="w-full bg-white text-red-500 py-3 rounded-xl module-card text-lg">Faham</button>
+                <button onclick="closeValidation()" class="w-full bg-white text-red-500 py-3 rounded-xl module-card text-lg">Faham</button>
             `;
+        }
+
+        function closeValidation() {
+            validationFooter.classList.add('hidden');
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            loadQuestion();
+        }
+
+        function showCompletionScreen() {
+            document.getElementById('module-progress').style.width = '100%';
+            document.getElementById('question-text').innerHTML = "Hebat! Anda telah menyelesaikan modul ini dengan cemerlang! 🎉";
+            
+            const container = document.getElementById('choices-container');
+            container.innerHTML = `
+                <div class="col-span-2 flex flex-col items-center justify-center p-6 bg-yellow-50 rounded-3xl border-4 border-yellow-200 mt-4">
+                    <i class="fa-solid fa-trophy text-6xl text-apk-gold mb-3 animate-bounce"></i>
+                    <h3 class="font-kids font-bold text-2xl text-yellow-600 mb-1">+100 XP Baharu!</h3>
+                    <p class="text-sm text-gray-500 mb-4">Latihan selesai. Mari teruskan pencapaian Pro!</p>
+                    <button onclick="closeModule()" class="w-full bg-apk-gold text-white font-bold py-3 px-6 rounded-xl module-card text-lg">Kembali ke Menu Utama</button>
+                </div>
+            `;
+            
+            confetti({ particleCount: 200, spread: 100, origin: { y: 0.5 } });
+        }
+
+        function closeModule() {
+            moduleScreen.classList.add('hidden');
+            moduleScreen.classList.remove('flex');
+            mainScreen.classList.remove('hidden');
         }
     </script>
 </body>
