@@ -63,10 +63,10 @@
                 <button onclick="loginGuest()" class="w-full bg-apk-blue text-white font-bold text-xl py-4 rounded-2xl module-card bounce-hover flex items-center justify-center gap-3">
                     <i class="fa-solid fa-play"></i> Mula Belajar (Guest)
                 </button>
-                <button onclick="loginGoogle()" class="w-full bg-white text-gray-700 font-bold text-lg py-4 rounded-2xl border-2 border-gray-200 shadow-sm bounce-hover flex items-center justify-center gap-3">
+                <button onclick="loginGuest()" class="w-full bg-white text-gray-700 font-bold text-lg py-4 rounded-2xl border-2 border-gray-200 shadow-sm bounce-hover flex items-center justify-center gap-3">
                     <i class="fa-brands fa-google text-red-500"></i> Log Masuk Google
                 </button>
-                <button onclick="loginTeacher()" class="w-full bg-gray-100 text-gray-600 font-bold text-lg py-4 rounded-2xl border-2 border-gray-200 shadow-sm bounce-hover flex items-center justify-center gap-3">
+                <button onclick="loginGuest()" class="w-full bg-gray-100 text-gray-600 font-bold text-lg py-4 rounded-2xl border-2 border-gray-200 shadow-sm bounce-hover flex items-center justify-center gap-3">
                     <i class="fa-solid fa-user-tie"></i> Log Masuk Guru/Ibu Bapa
                 </button>
             </div>
@@ -122,7 +122,7 @@
                         <i class="fa-solid fa-book-open text-4xl text-blue-500 mb-2"></i>
                         <span class="font-kids font-bold text-gray-700">1000 Perkataan</span>
                     </button>
-                    <button class="bg-green-100 module-card p-4 flex flex-col items-center justify-center text-center">
+                    <button onclick="openModule('ayat')" class="bg-green-100 module-card p-4 flex flex-col items-center justify-center text-center">
                         <i class="fa-solid fa-comments text-4xl text-green-500 mb-2"></i>
                         <span class="font-kids font-bold text-gray-700">Ayat Mudah</span>
                     </button>
@@ -217,23 +217,7 @@
             confetti({ particleCount: 50, spread: 60, origin: { y: 0.8 }, colors: ['#10B981', '#F59E0B', '#3B82F6'] });
         }
 
-        function loginGoogle() {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider).then((result) => {
-                document.getElementById('user-greeting').innerText = "Salam, " + result.user.displayName + "!";
-                loginGuest();
-            }).catch((err) => {
-                alert("Mod Demo Diaktifkan (Sebab: Ujian Tempatan / Domain Belum Ditambah ke Firebase)");
-                loginGuest();
-            });
-        }
-
-        function loginTeacher() {
-            alert("Mod Demo Guru/Ibu Bapa diaktifkan.");
-            loginGuest();
-        }
-
-        // --- 3. KOD DIBAIKI: PANGKALAN DATA SOALAN DINAMIK ---
+        // --- 3. DIBAIKI: PANGKALAN DATA SOALAN TERMASUK MODUL AYAT MUDAH ---
         const quizData = {
             huruf: [
                 { q: 'Pilih yang manakah huruf "Alif"?', choices: ['ب', 'أ', 'ت', 'ث'], correct: 1 },
@@ -242,9 +226,14 @@
             ],
             perkataan: [
                 { q: 'Apakah bahasa Arab untuk 📖 <b>Buku</b>?', choices: ['قَلَم', 'كِتَاب', 'بَيْت', 'مَدْرَسَة'], correct: 1 },
-                { q: 'Apakah bahasa Arab untuk 🍎 <b>Epal</b>?', choices: ['تُفَّاحَة', 'مَوْz', 'بُرْتُقَال', 'عِنَب'], correct: 0 },
-                { q: 'Apakah bahasa Arab untuk 🐱 <b>Kucing</b>?', choices: ['كَلْب', 'قِطّ', 'أَسَد', 'فِيل'], correct: 1 },
-                { q: 'Apakah bahasa Arab untuk 🏠 <b>Rumah</b>?', choices: ['بَيْت', 'غُرْفَة', 'مَسْجِد', 'بَاب'], correct: 0 }
+                { q: 'Apakah bahasa Arab untuk 🍎 <b>Epal</b>?', choices: ['تُفَّاحَة', 'مَوْز', 'بُرْتُقَال', 'عِنَب'], correct: 0 },
+                { q: 'Apakah bahasa Arab untuk 🐱 <b>Kucing</b>?', choices: ['كَلْب', 'قِطّ', 'أَسَد', 'فِيل'], correct: 1 }
+            ],
+            ayat: [
+                { q: 'Bagaimanakah cara menyebut <b>"Ini buku saya"</b>?', choices: ['هَذَا كِتَابِي', 'هَذِهِ مَدْرَسَتِي', 'ذَلِكَ قَلَمِي', 'أَنَا تِلْمِيذٌ'], correct: 0 },
+                { q: 'Apakah maksud bagi ayat: <span class="text-apk-blue font-arabic text-3xl block my-2">إِسْمِي أَحْمَدُ</span>', choices: ['Saya seorang guru', 'Nama saya Ahmad', 'Ini rumah saya', 'Saya suka belajar'], correct: 1 },
+                { q: 'Apakah ucapan selamat untuk <b>"Selamat Pagi"</b>?', choices: ['مساء الخير', 'صباح الخير', 'أهلاً وسهلاً', 'الحمد لله'], correct: 1 },
+                { q: 'Bagaimanakah bertanyakan khabar <b>"Apa khabar kamu?"</b>?', choices: ['مَا إِسْمُكَ؟', 'كَيْفَ حَالُكَ؟', 'مِنْ أَيْنَ أَنْتَ؟', 'كَمْ عُمْرُكَ؟'], correct: 1 }
             ]
         };
 
@@ -267,7 +256,6 @@
             
             const activeQuestions = quizData[currentModule];
             
-            // Jikalau semua soalan dalam modul telah selesai digenerasi
             if (currentQuestionIndex >= activeQuestions.length) {
                 showCompletionScreen();
                 return;
@@ -278,18 +266,20 @@
             // Kemaskini Teks Soalan
             document.getElementById('question-text').innerHTML = data.q;
             
-            // Pergerakan bar kemajuan (progress bar) secara dinamik
+            // Kemaskini Bar Kemajuan
             const progressPercent = (currentQuestionIndex / activeQuestions.length) * 100;
             document.getElementById('module-progress').style.width = `${progressPercent}%`;
             
-            // Jana Butang Pilihan Jawapan secara dinamik
+            // Jana Butang Jawapan mengikut format teks (jika ayat panjang, saiz teks dilaraskan sedikit)
             const container = document.getElementById('choices-container');
             container.innerHTML = '';
             
+            const textStyle = currentModule === 'ayat' ? 'text-2xl py-6' : 'text-5xl p-8';
+            
             data.choices.forEach((choice, index) => {
                 const btn = document.createElement('button');
-                btn.className = "border-4 border-gray-200 rounded-2xl p-8 text-5xl font-arabic text-gray-700 hover:bg-gray-50 active:bg-gray-100 module-card flex items-center justify-center";
-                btn.innerText = choice;
+                btn.className = `border-4 border-gray-200 rounded-2xl font-arabic text-gray-700 hover:bg-gray-50 active:bg-gray-100 module-card flex items-center justify-center text-center px-4 ${textStyle}`;
+                btn.innerHTML = choice;
                 btn.onclick = () => checkAnswer(index, data.correct);
                 container.appendChild(btn);
             });
@@ -303,7 +293,7 @@
             }
         }
 
-        // --- 4. GAMIFICATION & FEEDBACK LOGIC ---
+        // --- 4. FEEDBACK & GAMIFICATION LOGIC ---
         function correctAnswer() {
             validationFooter.classList.remove('hidden');
             validationFooter.className = 'p-6 text-white text-center font-bold text-xl rounded-t-3xl bg-apk-green flex flex-col gap-3 absolute bottom-0 w-full z-50 fade-in';
@@ -348,14 +338,14 @@
 
         function showCompletionScreen() {
             document.getElementById('module-progress').style.width = '100%';
-            document.getElementById('question-text').innerHTML = "Hebat! Anda telah menyelesaikan modul ini dengan cemerlang! 🎉";
+            document.getElementById('question-text').innerHTML = "Hebat! Anda telah menyelesaikan latihan ini dengan cemerlang! 🎉";
             
             const container = document.getElementById('choices-container');
             container.innerHTML = `
                 <div class="col-span-2 flex flex-col items-center justify-center p-6 bg-yellow-50 rounded-3xl border-4 border-yellow-200 mt-4">
                     <i class="fa-solid fa-trophy text-6xl text-apk-gold mb-3 animate-bounce"></i>
-                    <h3 class="font-kids font-bold text-2xl text-yellow-600 mb-1">+100 XP Baharu!</h3>
-                    <p class="text-sm text-gray-500 mb-4">Latihan selesai. Mari teruskan pencapaian Pro!</p>
+                    <h3 class="font-kids font-bold text-2xl text-yellow-600 mb-1">+150 XP Baharu!</h3>
+                    <p class="text-sm text-gray-500 mb-4">Modul selesai. Teruskan belajar untuk menjadi PRO!</p>
                     <button onclick="closeModule()" class="w-full bg-apk-gold text-white font-bold py-3 px-6 rounded-xl module-card text-lg">Kembali ke Menu Utama</button>
                 </div>
             `;
