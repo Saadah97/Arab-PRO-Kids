@@ -8,71 +8,360 @@
     <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'apk-green': '#10B981', // Hijau lembut Islamik
+                        'apk-blue': '#3B82F6',  // Biru lembut
+                        'apk-gold': '#F59E0B',  // Emas untuk ganjaran
+                        'apk-bg': '#F0FDF4',    // Latar belakang hijau sangat cair
+                    },
+                    fontFamily: {
+                        'kids': ['"Baloo 2"', 'cursive'],
+                        'arabic': ['Arial', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
     <style>
-        body { font-family: 'Nunito', sans-serif; background-color: #F0FDF4; }
-        .font-kids { font-family: 'Baloo 2', cursive; }
+        body { font-family: 'Nunito', sans-serif; background-color: #F0FDF4; -webkit-tap-highlight-color: transparent; }
+        h1, h2, h3, .font-kids { font-family: 'Baloo 2', cursive; }
+        
+        .bounce-hover:hover { transform: translateY(-5px); transition: all 0.2s ease; }
         .module-card { border-bottom: 6px solid rgba(0,0,0,0.1); border-radius: 1.5rem; cursor: pointer; }
-        .module-card:active { transform: translateY(4px); border-bottom: 2px solid rgba(0,0,0,0.1); }
-        .fade-in { animation: fadeIn 0.3s ease-in-out; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .module-card:active { border-bottom: 2px solid rgba(0,0,0,0.1); transform: translateY(4px); }
+        
+        ::-webkit-scrollbar { width: 0px; background: transparent; }
+        
+        .fade-in { animation: fadeIn 0.4s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="text-gray-800 h-screen flex flex-col overflow-hidden">
 
-    <div class="max-w-md w-full h-full mx-auto bg-white shadow-2xl relative flex flex-col">
-        
-        <div id="main-screen" class="flex flex-col h-full fade-in">
-            <div class="bg-emerald-500 text-white p-6 rounded-b-3xl">
-                <h1 class="text-3xl font-kids font-bold">Arab PRO Kids</h1>
-                <p>Belajar Arab jadi seronok!</p>
+    <div class="max-w-md w-full h-full mx-auto bg-white shadow-2xl relative flex flex-col sm:border-x-4 sm:border-gray-100">
+
+        <div id="login-screen" class="absolute inset-0 bg-apk-bg z-50 flex flex-col items-center justify-center p-6 fade-in">
+            <div class="text-center mb-8">
+                <div class="w-32 h-32 bg-white rounded-full shadow-lg flex items-center justify-center mx-auto mb-4 border-4 border-apk-green">
+                    <i class="fa-solid fa-mosque text-5xl text-apk-green"></i>
+                </div>
+                <h1 class="text-4xl font-kids font-bold text-apk-green">Arab PRO<br>Kids</h1>
+                <p class="text-gray-500 mt-2 font-bold">Belajar Bahasa Arab Cara Pro!</p>
             </div>
-            
-            <div class="flex-1 p-6 space-y-4">
-                <button onclick="openAI()" class="w-full bg-orange-100 p-6 rounded-2xl module-card flex items-center gap-4 text-left border-2 border-orange-200">
-                    <div class="text-4xl text-orange-500"><i class="fa-solid fa-robot"></i></div>
-                    <div>
-                        <h3 class="font-bold text-lg">AI Tutor Pintar</h3>
-                        <p class="text-sm text-gray-600">Tanya saya apa saja soalan Arab!</p>
-                    </div>
+
+            <div class="w-full space-y-4">
+                <button onclick="loginGuest()" class="w-full bg-apk-blue text-white font-bold text-xl py-4 rounded-2xl module-card bounce-hover flex items-center justify-center gap-3">
+                    <i class="fa-solid fa-play"></i> Mula Belajar (Guest)
+                </button>
+                <button onclick="loginGuest()" class="w-full bg-white text-gray-700 font-bold text-lg py-4 rounded-2xl border-2 border-gray-200 shadow-sm bounce-hover flex items-center justify-center gap-3">
+                    <i class="fa-brands fa-google text-red-500"></i> Log Masuk Google
+                </button>
+                <button onclick="loginGuest()" class="w-full bg-gray-100 text-gray-600 font-bold text-lg py-4 rounded-2xl border-2 border-gray-200 shadow-sm bounce-hover flex items-center justify-center gap-3">
+                    <i class="fa-solid fa-user-tie"></i> Log Masuk Guru/Ibu Bapa
                 </button>
             </div>
         </div>
 
-        <div id="ai-modal" class="hidden absolute inset-0 bg-white z-50 flex flex-col">
-            <div class="p-4 bg-orange-500 text-white flex items-center gap-4">
-                <button onclick="closeAI()"><i class="fa-solid fa-arrow-left"></i></button>
-                <h2 class="font-bold text-xl">AI Tutor</h2>
+        <div id="main-screen" class="hidden flex-col h-full fade-in">
+            <div class="bg-apk-green text-white p-5 rounded-b-3xl shadow-md z-10">
+                <div class="flex justify-between items-center mb-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 bg-white rounded-full p-1 border-2 border-apk-gold">
+                            <img src="https://api.dicebear.com/6.x/avataaars/svg?seed=Ahmad" alt="Avatar" class="w-full h-full rounded-full bg-blue-100">
+                        </div>
+                        <div>
+                            <h2 id="user-greeting" class="font-kids text-xl font-bold leading-tight">Salam, Ahmad!</h2>
+                            <p class="text-xs text-green-100">Tahun 1 • Level 5</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <div class="bg-white/20 px-3 py-1 rounded-full flex items-center gap-1 font-bold">
+                            <i class="fa-solid fa-fire text-orange-400"></i> 12
+                        </div>
+                        <div class="bg-white/20 px-3 py-1 rounded-full flex items-center gap-1 font-bold">
+                            <i class="fa-solid fa-coins text-apk-gold"></i> 450
+                        </div>
+                    </div>
+                </div>
+                <div class="w-full bg-black/20 rounded-full h-3 mb-1">
+                    <div class="bg-apk-gold h-3 rounded-full" style="width: 70%"></div>
+                </div>
+                <div class="text-right text-xs text-green-100 font-bold">XP: 1250 / 2000</div>
             </div>
-            <div id="chat-box" class="flex-1 p-4 overflow-y-auto space-y-4 bg-gray-50">
-                <div class="bg-white p-3 rounded-lg shadow-sm max-w-[80%]">Halo! Saya AI Tutor anda. Apa yang ingin dipelajari hari ini?</div>
+
+            <div class="flex-1 overflow-y-auto p-4 pb-24 bg-apk-bg">
+                
+                <div class="bg-white p-4 rounded-2xl shadow-sm border-2 border-blue-100 mb-6 flex items-center justify-between">
+                    <div>
+                        <h3 class="font-kids font-bold text-lg text-apk-blue">Cabaran Harian</h3>
+                        <p class="text-sm text-gray-500">Selesaikan 1 Kuiz Haiwan</p>
+                    </div>
+                    <div class="bg-orange-100 p-3 rounded-xl text-orange-500">
+                        <i class="fa-solid fa-gift text-2xl"></i>
+                    </div>
+                </div>
+
+                <h3 class="font-kids font-bold text-xl text-gray-700 mb-4">Mari Belajar! 🚀</h3>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <button onclick="openModule('huruf')" class="bg-pink-100 module-card p-4 flex flex-col items-center justify-center text-center">
+                        <span class="text-5xl font-arabic text-pink-500 mb-2 font-bold">أ ب</span>
+                        <span class="font-kids font-bold text-gray-700">Huruf Hijaiyah</span>
+                    </button>
+                    <button onclick="openModule('perkataan')" class="bg-blue-100 module-card p-4 flex flex-col items-center justify-center text-center">
+                        <i class="fa-solid fa-book-open text-4xl text-blue-500 mb-2"></i>
+                        <span class="font-kids font-bold text-gray-700">1000 Perkataan</span>
+                    </button>
+                    <button onclick="openModule('ayat')" class="bg-green-100 module-card p-4 flex flex-col items-center justify-center text-center">
+                        <i class="fa-solid fa-comments text-4xl text-green-500 mb-2"></i>
+                        <span class="font-kids font-bold text-gray-700">Ayat Mudah</span>
+                    </button>
+                    <button onclick="openModule('game')" class="bg-purple-100 module-card p-4 flex flex-col items-center justify-center text-center">
+                        <i class="fa-solid fa-gamepad text-4xl text-purple-500 mb-2"></i>
+                        <span class="font-kids font-bold text-gray-700">Main & Kuiz</span>
+                    </button>
+                    <button class="bg-orange-100 module-card p-4 flex flex-col items-center justify-center text-center col-span-2">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-white p-3 rounded-full shadow-sm text-orange-500">
+                                <i class="fa-solid fa-robot text-3xl"></i>
+                            </div>
+                            <div class="text-left">
+                                <span class="font-kids font-bold text-gray-700 block text-lg">AI Tutor Pintar</span>
+                                <span class="text-sm text-gray-500">Tanya apa sahaja!</span>
+                            </div>
+                        </div>
+                    </button>
+                </div>
             </div>
-            <div class="p-4 border-t flex gap-2">
-                <input id="chat-input" type="text" placeholder="Tanya soalan..." class="flex-1 border p-2 rounded-lg">
-                <button onclick="sendMessage()" class="bg-orange-500 text-white px-4 py-2 rounded-lg"><i class="fa-solid fa-paper-plane"></i></button>
+
+            <div class="absolute bottom-0 w-full bg-white border-t-2 border-gray-100 flex justify-around p-3 pb-6 z-20 shadow-[0_-10px_20px_rgba(0,0,0,0.05)]">
+                <button class="flex flex-col items-center text-apk-green">
+                    <i class="fa-solid fa-house text-2xl mb-1"></i>
+                    <span class="text-xs font-bold">Home</span>
+                </button>
+                <button class="flex flex-col items-center text-gray-400 hover:text-apk-blue transition">
+                    <i class="fa-solid fa-trophy text-2xl mb-1"></i>
+                    <span class="text-xs font-bold">Ranking</span>
+                </button>
+                <button class="flex flex-col items-center text-gray-400 hover:text-apk-blue transition">
+                    <i class="fa-solid fa-chart-pie text-2xl mb-1"></i>
+                    <span class="text-xs font-bold">Prestasi</span>
+                </button>
+                <button class="flex flex-col items-center text-gray-400 hover:text-apk-blue transition">
+                    <i class="fa-solid fa-gear text-2xl mb-1"></i>
+                    <span class="text-xs font-bold">Tetapan</span>
+                </button>
             </div>
         </div>
+
+        <div id="module-screen" class="hidden flex-col h-full bg-white z-40 absolute inset-0 fade-in">
+            <div class="p-4 flex items-center gap-4 border-b-2 border-gray-100">
+                <button onclick="closeModule()" class="text-gray-400 hover:text-gray-700 text-2xl">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+                <div class="w-full bg-gray-200 rounded-full h-4">
+                    <div id="module-progress" class="bg-apk-green h-4 rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+                <i class="fa-solid fa-heart text-red-500 text-xl"></i>
+            </div>
+            
+            <div class="flex-1 flex flex-col items-center justify-center p-6 text-center">
+                <h2 id="question-text" class="font-kids font-bold text-2xl text-gray-700 mb-2">Memuatkan soalan...</h2>
+                
+                <div id="choices-container" class="grid grid-cols-2 gap-4 w-full mt-8">
+                </div>
+            </div>
+
+            <div id="validation-footer" class="hidden p-6 text-white text-center font-bold text-xl rounded-t-3xl">
+            </div>
+        </div>
+
     </div>
 
     <script>
-        function openAI() { document.getElementById('ai-modal').classList.remove('hidden'); }
-        function closeAI() { document.getElementById('ai-modal').classList.add('hidden'); }
+        // --- 1. FIREBASE CONFIGURATION ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyAtFzrMWQ70vRCVhoECHxjjY0hP5WXkw74",
+            authDomain: "arab-pro-kids.firebaseapp.com",
+            databaseURL: "https://arab-pro-kids-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "arab-pro-kids",
+            storageBucket: "arab-pro-kids.firebasestorage.app",
+            messagingSenderId: "648161412378",
+            appId: "1:648161412378:web:b37feef60b72ebf1b098a3"
+        };
 
-        function sendMessage() {
-            const input = document.getElementById('chat-input');
-            const chatBox = document.getElementById('chat-box');
-            if (!input.value) return;
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
 
-            // Tambah mesej user
-            chatBox.innerHTML += `<div class="bg-blue-100 p-3 rounded-lg ml-auto max-w-[80%]">${input.value}</div>`;
+        // --- 2. UI NAVIGATION LOGIC ---
+        const loginScreen = document.getElementById('login-screen');
+        const mainScreen = document.getElementById('main-screen');
+        const moduleScreen = document.getElementById('module-screen');
+        const validationFooter = document.getElementById('validation-footer');
+
+        function loginGuest() {
+            loginScreen.classList.add('hidden');
+            mainScreen.classList.remove('hidden');
+            mainScreen.classList.add('flex');
+            confetti({ particleCount: 50, spread: 60, origin: { y: 0.8 }, colors: ['#10B981', '#F59E0B', '#3B82F6'] });
+        }
+
+        // --- 3. DIBAIKI: PANGKALAN DATA KUIZ BERMODULAR (TERMASUK GAME & KUIZ) ---
+        const quizData = {
+            huruf: [
+                { q: 'Pilih yang manakah huruf "Alif"?', choices: ['ب', 'أ', 'ت', 'ث'], correct: 1 },
+                { q: 'Pilih yang manakah huruf "Ba"?', choices: ['ج', 'ث', 'ب', 'خ'], correct: 2 },
+                { q: 'Pilih yang manakah huruf "Ta"?', choices: ['ت', 'أ', 'د', 'ز'], correct: 0 }
+            ],
+            perkataan: [
+                { q: 'Apakah bahasa Arab untuk 📖 <b>Buku</b>?', choices: ['قَلَم', 'كِتَاب', 'بَيْت', 'مَدْرَسَة'], correct: 1 },
+                { q: 'Apakah bahasa Arab untuk 🍎 <b>Epal</b>?', choices: ['تُفَّاحَة', 'مَوْز', 'بُرْتُقَال', 'عِنَب'], correct: 0 },
+                { q: 'Apakah bahasa Arab untuk 🐱 <b>Kucing</b>?', choices: ['كَلْب', 'قِطّ', 'أَسَد', 'فِيل'], correct: 1 }
+            ],
+            ayat: [
+                { q: 'Bagaimanakah cara menyebut <b>"Ini buku saya"</b>?', choices: ['هَذَا كِتَابِي', 'هَذِهِ مَدْرَسَتِي', 'ذَلِكَ قَلَمِي', 'أَنَا تِلْمِيذٌ'], correct: 0 },
+                { q: 'Apakah maksud bagi ayat: <span class="text-apk-blue font-arabic text-3xl block my-2">إِسْمِي أَحْمَدُ</span>', choices: ['Saya seorang guru', 'Nama saya Ahmad', 'Ini rumah saya', 'Saya suka belajar'], correct: 1 },
+                { q: 'Apakah ucapan selamat untuk <b>"Selamat Pagi"</b>?', choices: ['مساء الخير', 'صباح الخير', 'أهلاً وسهلاً', 'الحمد لله'], correct: 1 }
+            ],
+            game: [
+                { q: '🎯 <b>TEKA GAMBAR</b>: Yang manakah bermaksud <b>"Qalam" (قَلَم)</b>?', choices: ['🏠 Rumah', '✏️ Pensel/Pena', '🚗 Kereta', '🌳 Pokok'], correct: 1 },
+                { q: '🧩 <b>SUAI PADAN</b>: Cari padanan yang betul bagi perkataan <b>"Bait" (بَيْت)</b>!', choices: ['🐱 Kucing', '📖 Buku', '🏠 Rumah', '🍎 Epal'], correct: 2 },
+                { q: '⚡ <b>CABARAN PANTAS</b>: Lawan bagi perkataan <span class="text-purple-600 font-arabic text-2xl">كَبِيرٌ</span> (Besar) ialah...', choices: ['صَغِيرٌ (Kecil)', 'جَمِيلٌ (Cantik)', 'طَوِيلٌ (Panjang)', 'جَدِيدٌ (Baru)'], correct: 0 }
+            ]
+        };
+
+        let currentModule = 'huruf';
+        let currentQuestionIndex = 0;
+
+        function openModule(type) {
+            currentModule = type;
+            currentQuestionIndex = 0;
             
-            // Simulasi jawapan AI
-            setTimeout(() => {
-                chatBox.innerHTML += `<div class="bg-white p-3 rounded-lg shadow-sm max-w-[80%]">Wah, soalan yang bagus! Dalam bahasa Arab, itu dipanggil... (Sistem sedang bersambung ke API AI).</div>`;
-                chatBox.scrollTop = chatBox.scrollHeight;
-            }, 500);
+            mainScreen.classList.add('hidden');
+            moduleScreen.classList.remove('hidden');
+            moduleScreen.classList.add('flex');
+            
+            loadQuestion();
+        }
 
-            input.value = '';
-            chatBox.scrollTop = chatBox.scrollHeight;
+        function loadQuestion() {
+            closeValidation();
+            
+            const activeQuestions = quizData[currentModule];
+            
+            if (currentQuestionIndex >= activeQuestions.length) {
+                showCompletionScreen();
+                return;
+            }
+            
+            const data = activeQuestions[currentQuestionIndex];
+            
+            // Kemaskini teks soalan mengikut modul
+            document.getElementById('question-text').innerHTML = data.q;
+            
+            // Kemaskini peratusan bar kemajuan (progress bar)
+            const progressPercent = (currentQuestionIndex / activeQuestions.length) * 100;
+            document.getElementById('module-progress').style.width = `${progressPercent}%`;
+            
+            // Jana butang jawapan berdasarkan kepanjangan teks kuiz
+            const container = document.getElementById('choices-container');
+            container.innerHTML = '';
+            
+            const isLongText = (currentModule === 'ayat' || currentModule === 'game');
+            const textStyle = isLongText ? 'text-xl py-6 px-4' : 'text-6xl p-8';
+            
+            data.choices.forEach((choice, index) => {
+                const btn = document.createElement('button');
+                btn.className = `border-4 border-gray-200 rounded-2xl font-arabic text-gray-700 hover:bg-gray-50 active:bg-gray-100 module-card flex items-center justify-center text-center ${textStyle}`;
+                btn.innerHTML = choice;
+                btn.onclick = () => checkAnswer(index, data.correct);
+                container.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(selectedIndex, correctIndex) {
+            if (selectedIndex === correctIndex) {
+                correctAnswer();
+            } else {
+                wrongAnswer();
+            }
+        }
+
+        // --- 4. GAMIFICATION FEEDBACK ---
+        function correctAnswer() {
+            validationFooter.classList.remove('hidden');
+            validationFooter.className = 'p-6 text-white text-center font-bold text-xl rounded-t-3xl bg-apk-green flex flex-col gap-3 absolute bottom-0 w-full z-50 fade-in';
+            validationFooter.innerHTML = `
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2 text-2xl">
+                        <i class="fa-solid fa-circle-check"></i> Mumtaz! Betul!
+                    </div>
+                </div>
+                <button onclick="nextQuestion()" class="w-full bg-white text-apk-green py-3 rounded-xl module-card text-lg">Teruskan</button>
+            `;
+            
+            confetti({
+                particleCount: 150,
+                spread: 90,
+                origin: { y: 0.6 },
+                colors: ['#F59E0B', '#10B981', '#FFFFFF']
+            });
+        }
+
+        function wrongAnswer() {
+            validationFooter.classList.remove('hidden');
+            validationFooter.className = 'p-6 text-white text-center font-bold text-xl rounded-t-3xl bg-red-400 flex flex-col gap-3 absolute bottom-0 w-full z-50 fade-in';
+            validationFooter.innerHTML = `
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2 text-2xl">
+                        <i class="fa-solid fa-circle-xmark"></i> Ops! Cuba lagi.
+                    </div>
+                </div>
+                <button onclick="closeValidation()" class="w-full bg-white text-red-500 py-3 rounded-xl module-card text-lg">Faham</button>
+            `;
+        }
+
+        function closeValidation() {
+            validationFooter.classList.add('hidden');
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            loadQuestion();
+        }
+
+        function showCompletionScreen() {
+            document.getElementById('module-progress').style.width = '100%';
+            document.getElementById('question-text').innerHTML = "Barakallah! Anda berjaya menyelesaikan permainan ini! 🎮✨";
+            
+            const container = document.getElementById('choices-container');
+            container.innerHTML = `
+                <div class="col-span-2 flex flex-col items-center justify-center p-6 bg-yellow-50 rounded-3xl border-4 border-yellow-200 mt-4">
+                    <i class="fa-solid fa-trophy text-6xl text-apk-gold mb-3 animate-bounce"></i>
+                    <h3 class="font-kids font-bold text-2xl text-yellow-600 mb-1">+200 XP BONUS GAME!</h3>
+                    <p class="text-sm text-gray-500 mb-4">Anda bermain seperti seorang profesional sejati!</p>
+                    <button onclick="closeModule()" class="w-full bg-apk-gold text-white font-bold py-3 px-6 rounded-xl module-card text-lg">Kembali ke Menu Utama</button>
+                </div>
+            `;
+            
+            confetti({ particleCount: 250, spread: 120, origin: { y: 0.5 } });
+        }
+
+        function closeModule() {
+            moduleScreen.classList.add('hidden');
+            moduleScreen.classList.remove('flex');
+            mainScreen.classList.remove('hidden');
         }
     </script>
 </body>
