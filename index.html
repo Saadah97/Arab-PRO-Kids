@@ -58,5 +58,29 @@
             document.getElementById('screen-' + screenId).classList.remove('hidden-screen');
         }
     </script>
+    /users/{uid}
+  - profile: { name, avatarUrl, level, totalXP, totalStars, streak }
+  - progress: { year1: { module1: { status: "completed", score: 90 } } }
+
+/modules/{year_level}/{module_id}
+  - title, description, content_url, audio_list, quiz_data
+
+/leaderboard/global
+  - top_users: [{ uid, name, score }]
+import { initializeApp } from "firebase/app";
+import { getFirestore } from "firebase/firestore";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAtFzrMWQ70vRCVhoECHxjjY0hP5WXkw74",
+  authDomain: "arab-pro-kids.firebaseapp.com",
+  databaseURL: "https://arab-pro-kids-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "arab-pro-kids",
+  storageBucket: "arab-pro-kids.firebasestorage.app",
+  messagingSenderId: "648161412378",
+  appId: "1:648161412378:web:a48dfaa66ce896f5b098a3"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 </body>
 </html>
