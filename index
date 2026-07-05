@@ -1,0 +1,9 @@
+/users/{uid}
+  - profile: { name, avatarUrl, level, totalXP, totalStars, streak }
+  - progress: { year1: { module1: { status: "completed", score: 90 } } }
+
+/modules/{year_level}/{module_id}
+  - title, description, content_url, audio_list, quiz_data
+
+/leaderboard/global
+  - top_users: [{ uid, name, score }]
